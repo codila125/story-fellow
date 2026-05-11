@@ -1,0 +1,4 @@
+Cloud architecture is not just about scaling. It is about reducing operational burden while keeping reliability high.
+
+In this story, a small publishing team needed to turn long-form articles into narrated audio.
+They selected serverless components so they could focus on product value instead of patching servers.

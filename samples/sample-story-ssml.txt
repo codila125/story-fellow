@@ -1,0 +1,10 @@
+<speak>
+  <prosody rate="95%" pitch="+2%">
+    Welcome to AI StoryCast. This is your daily cloud-native audio briefing.
+  </prosody>
+  <break time="600ms"/>
+  <p>
+    Today we learned that asynchronous text-to-speech pipelines can be built with
+    Amazon Polly, Lambda, S3, and DynamoDB.
+  </p>
+</speak>

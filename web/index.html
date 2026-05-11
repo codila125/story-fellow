@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI StoryCast</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; max-width: 760px; }
+      label, select, input, textarea, button { display: block; width: 100%; margin-bottom: 1rem; }
+      textarea { min-height: 180px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .status { padding: .8rem; border: 1px solid #ccc; margin-top: 1rem; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h1>AI StoryCast</h1>
+    <p>Upload text, synthesize narration with Amazon Polly, and play the resulting audio.</p>
+
+    <label for="apiBaseUrl">API Base URL</label>
+    <input id="apiBaseUrl" placeholder="https://xxxx.execute-api.region.amazonaws.com/prod" />
+
+    <label for="filename">Filename</label>
+    <input id="filename" value="story.txt" />
+
+    <div class="row">
+      <div>
+        <label for="voice">Voice</label>
+        <select id="voice">
+          <option>Joanna</option>
+          <option>Matthew</option>
+          <option>Amy</option>
+        </select>
+      </div>
+      <div>
+        <label for="language">Language Code</label>
+        <select id="language">
+          <option>en-US</option>
+          <option>en-GB</option>
+        </select>
+      </div>
+    </div>
+
+    <label><input type="checkbox" id="useSsml" /> Use SSML (Podcast Mode)</label>
+
+    <label for="story">Story Text</label>
+    <textarea id="story">Once upon a time, a cloud-native storyteller published audio with zero servers to manage.</textarea>
+
+    <button id="submitBtn">Create StoryCast Job</button>
+    <hr />
+    <h2>Bonus: Create from Blog URL</h2>
+    <label for="articleUrl">Article URL</label>
+    <input id="articleUrl" placeholder="https://example.com/blog-post" />
+    <button id="fromUrlBtn">Create Podcast from URL</button>
+
+    <div class="status" id="status">Status: idle</div>
+    <audio id="player" controls style="margin-top:1rem; width:100%; display:none;"></audio>
+
+    <script>
+      const statusBox = document.getElementById('status');
+      const player = document.getElementById('player');
+      const submitBtn = document.getElementById('submitBtn');
+      const fromUrlBtn = document.getElementById('fromUrlBtn');
+
+      async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+      async function pollStatus(apiBaseUrl, jobId) {
+        for (let i = 0; i < 40; i++) {
+          const response = await fetch(`${apiBaseUrl}/jobs/${jobId}`);
+          const data = await response.json();
+          statusBox.textContent = `Status: ${data.status}\nJob: ${jobId}`;
+
+          if (data.status === 'COMPLETED' && data.audioUrl) {
+            player.src = data.audioUrl;
+            player.style.display = 'block';
+            statusBox.textContent += `\nAudio Ready: ${data.audioUrl}`;
+            return;
+          }
+
+          if (data.status === 'FAILED') {
+            statusBox.textContent += `\nError: ${data.errorMessage || 'unknown'}`;
+            return;
+          }
+
+          await sleep(5000);
+        }
+
+        statusBox.textContent += '\nPolling timeout. Check CloudWatch logs.';
+      }
+
+      submitBtn.onclick = async () => {
+        const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+        const filename = document.getElementById('filename').value.trim();
+        const voiceId = document.getElementById('voice').value;
+        const languageCode = document.getElementById('language').value;
+        const useSsml = document.getElementById('useSsml').checked;
+        const story = document.getElementById('story').value;
+
+        if (!apiBaseUrl) {
+          alert('API base URL required');
+          return;
+        }
+
+        statusBox.textContent = 'Status: requesting upload URL...';
+
+        const uploadUrlResponse = await fetch(`${apiBaseUrl}/jobs/upload-url`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename, voiceId, languageCode, useSsml }),
+        });
+        const uploadUrlData = await uploadUrlResponse.json();
+
+        if (!uploadUrlData.uploadUrl) {
+          statusBox.textContent = `Failed: ${JSON.stringify(uploadUrlData)}`;
+          return;
+        }
+
+        statusBox.textContent = `Status: uploading story for job ${uploadUrlData.jobId}...`;
+
+        await fetch(uploadUrlData.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'text/plain' },
+          body: story,
+        });
+
+        statusBox.textContent = `Status: uploaded. polling job ${uploadUrlData.jobId}...`;
+        await pollStatus(apiBaseUrl, uploadUrlData.jobId);
+      };
+
+      fromUrlBtn.onclick = async () => {
+        const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+        const articleUrl = document.getElementById('articleUrl').value.trim();
+        const voiceId = document.getElementById('voice').value;
+        const languageCode = document.getElementById('language').value;
+        const useSsml = document.getElementById('useSsml').checked;
+
+        if (!apiBaseUrl || !articleUrl) {
+          alert('API base URL and article URL are required');
+          return;
+        }
+
+        statusBox.textContent = 'Status: extracting article and creating job...';
+        const response = await fetch(`${apiBaseUrl}/jobs/from-url`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: articleUrl, voiceId, languageCode, useSsml }),
+        });
+        const data = await response.json();
+
+        if (!data.jobId) {
+          statusBox.textContent = `Failed: ${JSON.stringify(data)}`;
+          return;
+        }
+
+        statusBox.textContent = `Status: article accepted. polling job ${data.jobId}...`;
+        await pollStatus(apiBaseUrl, data.jobId);
+      };
+    </script>
+  </body>
+</html>
