@@ -9,7 +9,8 @@ Story Fellow is a serverless async text-to-audio pipeline on AWS:
 - EventBridge + SNS for task completion signaling
 - DynamoDB for job metadata and lifecycle state
 - CloudWatch for logs and operational visibility
-- AWS SAM for infrastructure packaging/deployment
+- Terraform for infrastructure provisioning
+- S3 + CloudFront for hosting the product web app
 
 ## Lambda Components
 - `GeneratePresignedUploadUrlLambda`: creates job and upload URL
@@ -47,10 +48,12 @@ uv run ruff check .
 
 ## Deploy
 ```bash
-sam build
-sam deploy --guided
+terraform -chdir=infra/terraform init
+terraform -chdir=infra/terraform plan
+terraform -chdir=infra/terraform apply
 ```
 
 ## Operations
-Use the existing Cloudcraft guide for visual system mapping:
-- `docs-cloudcraft-architecture-guide.md`
+- `terraform output -chdir=infra/terraform website_url` for hosted web app URL
+- `terraform output -chdir=infra/terraform api_base_url` for API base URL
+- `docs-cloudcraft-architecture-guide.md` for visual architecture mapping

@@ -18,6 +18,7 @@ Publishing audio versions of articles, stories, and updates is usually manual an
 - Async speech generation with job status tracking
 - Output delivery through secure access URLs
 - Optional distribution path for public playback
+- AWS-hosted web app delivery through CloudFront
 
 ## Typical User Flow
 1. User creates a narration job and uploads content.
@@ -34,8 +35,10 @@ Publishing audio versions of articles, stories, and updates is usually manual an
 Product README is intentionally non-technical.
 For implementation details, use:
 - [Technical Overview](docs/TECHNICAL.md)
+- [Deployment Guide](docs/deployment-guide.md)
 - [Cloudcraft Architecture Guide](docs-cloudcraft-architecture-guide.md)
 
 ## Status
 - Repository: production-style portfolio project
 - Stack: AWS serverless audio generation workflow
+- Deployment: Terraform-first infrastructure and AWS-hosted frontend
