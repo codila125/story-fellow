@@ -1,4 +1,12 @@
-.aws-sam/
 __pycache__/
 *.pyc
 .env
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+.generate-upload-url.zip
+.create-job-from-url.zip
+.start-storycast.zip
+.check-storycast-status.zip
+.polly-task-status-updater.zip

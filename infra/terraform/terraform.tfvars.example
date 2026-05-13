@@ -1,0 +1,9 @@
+aws_region             = "us-east-1"
+project_name           = "story-fellow"
+environment            = "dev"
+python_runtime         = "python3.12"
+log_retention_days     = 14
+lambda_memory_mb       = 256
+lambda_timeout_seconds = 30
+polly_output_prefix    = "output/"
+deploy_website         = true
