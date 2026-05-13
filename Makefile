@@ -1,4 +1,4 @@
-.PHONY: sync lint format sam-build sam-validate
+.PHONY: sync lint format tf-init tf-plan tf-apply tf-destroy
 
 sync:
 	uv sync --all-groups
@@ -9,8 +9,14 @@ lint:
 format:
 	uv run ruff format .
 
-sam-build:
-	sam build
+tf-init:
+	terraform -chdir=infra/terraform init
 
-sam-validate:
-	sam validate
+tf-plan:
+	terraform -chdir=infra/terraform plan
+
+tf-apply:
+	terraform -chdir=infra/terraform apply
+
+tf-destroy:
+	terraform -chdir=infra/terraform destroy
