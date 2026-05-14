@@ -42,3 +42,15 @@ For implementation details, use:
 - Repository: production-style portfolio project
 - Stack: AWS serverless audio generation workflow
 - Deployment: Terraform-first infrastructure and AWS-hosted frontend
+
+## Standard Developer Commands
+```bash
+make install
+make lint
+make format
+make infra-init
+make infra-plan
+make infra-apply
+make run
+make destroy
+```
