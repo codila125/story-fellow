@@ -1,6 +1,6 @@
-.PHONY: sync lint format tf-init tf-plan tf-apply tf-destroy
+.PHONY: install lint format infra-init infra-plan infra-apply run destroy tf-init tf-plan tf-apply tf-destroy
 
-sync:
+install:
 	uv sync --all-groups
 
 lint:
@@ -9,14 +9,26 @@ lint:
 format:
 	uv run ruff format .
 
-tf-init:
+infra-init:
 	terraform -chdir=infra/terraform init
 
-tf-plan:
+infra-plan:
 	terraform -chdir=infra/terraform plan
 
-tf-apply:
+infra-apply:
 	terraform -chdir=infra/terraform apply
 
-tf-destroy:
+run:
+	python3 -m http.server 8000 --directory web
+
+destroy:
 	terraform -chdir=infra/terraform destroy
+
+# Backward-compatible aliases
+tf-init: infra-init
+
+tf-plan: infra-plan
+
+tf-apply: infra-apply
+
+tf-destroy: destroy
